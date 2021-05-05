@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_partner_form_id_inherited" model="ir.ui.view">
+            <field name="name">res.partner.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                     <br></br>
+                     <field name="last_name"/>
+                 </field>
+                <field name="website" position="before">
+                     <field name="gender"/>
+                     <field name="birth_month"/>
+                     <field name="birth_year"/>
+                     <field name="age"/>
+                     <field name="type_user"/>
+                     <field name="age_division_id"/>
+                 </field>
+            </field>
+        </record>
+    </data>
+</odoo>
+

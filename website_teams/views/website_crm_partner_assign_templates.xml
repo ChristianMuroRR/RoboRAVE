@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!-- Portal -->
+    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Survey assets">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/website_teams/static/src/js/crm_partner_assign.js" />
+            <script type="text/javascript" src="/website_teams/static/src/js/search.js" />
+        </xpath>
+    </template>
+
+    <template id="portal_my_home_menu_team" name="Portal layout : team menu entry" inherit_id="portal.portal_breadcrumbs" priority="15">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'team' or team" t-attf-class="breadcrumb-item #{'active ' if not team else ''}">
+                <a t-if="team" t-attf-href="/my/teams?{{ keep_query() }}">
+                    Team
+                </a>
+                <t t-else="">
+                    Teams
+                </t>
+            </li>
+            <li t-if="team" class="breadcrumb-item active">
+                <span t-field="team.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_home_team" name="Show Teams" customize_show="True" inherit_id="portal.portal_my_home" priority="15">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">My Teams</t>
+                <t t-set="url" t-value="'/my/teams'"/>
+                <t t-set="placeholder_count" t-value="'team_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+
+
+
+    <template id="portal_my_teams" name="My Teams">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Teams</t>
+                <div class="form-inline ml-lg-4">
+                    <button class="btn btn-success btn-sm" name='new_team' data-toggle="modal" data-target=".modal_new_team" title="Add a Team" aria-label="Add a team">
+                        <i class="fa fa-plus"/> Create New Team
+                    </button>
+                </div>
+            </t>
+            <div class="modal fade modal_new_team" role="form">
+                <div class="modal-dialog">
+                    <form method="POST" class="modal-content js_website_submit_form new_team_form">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <header class="modal-header">
+                            <h4 class="modal-title">New Team</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
+                        </header>
+                        <main class="modal-body" id="new-opp-dialog">
+                            <div class="form-group">
+                                <label class="col-form-label h4dd" for="title">Team Name</label>
+                                <input type='text' name="title" class="form-control title"/>
+                            </div>
+                        </main>
+                        <footer class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button t-attf-class="btn btn-primary new_team_confirm">Confirm</button>
+                        </footer>
+
+                    </form>
+                </div>
+            </div>
+            <t t-if="not teams">
+                <div class="alert alert-warning mt8" role="alert">
+                    There are no teams.
+                </div>
+            </t>
+            <t t-if="teams" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Create Date</th>
+                        <th class="w-50">Name Team</th>
+                        <th>Owner</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="teams" t-as="team">
+                        <td><span t-field="team.create_date" t-options='{"widget": "date"}' /></td>
+                        <td>
+                            <a t-attf-href="/my/team/#{team.id}"><span t-field="team.name"/></a>
+                        </td>
+                        <td><span t-field="team.create_uid" /></td>
+                        <td>
+                            <span class="badge badge-info badge-pill" title="Current stage of the team" t-esc="team.stage_id.name" />
+                        </td>
+                    </tr>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+
+
+
+
+
+    <template id="portal_my_team" name="My Team">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_record_layout">
+                <t t-set="card_header">
+                    <div class="row no-gutters">
+                        <div class="col-md">
+                            <h5 class="mb-2 mb-md-0">
+                                <small class="text-muted">Team - </small>
+                                <span t-field="team.name"/>
+                            </h5>
+                        </div>
+                        <div class="col-md text-md-right">
+                            <div class="d-inline-block">
+                                <small class="mr-2 mt-1 float-left"><b>Stage:</b></small>
+                                <div t-foreach="stages[::-1]" t-as="stage" class="float-left">
+                                    <i t-if="not stage_first" class="fa fa-chevron-right ml-2 mr-1 small" style="opacity: 0.5"/>
+                                    <button type="button" t-att-data="stage.id" t-att-team="team.id" t-attf-class="btn btn-sm px-2 team-stage-button #{'btn-secondary' if team.stage_id.name != stage.name else 'btn-primary disabled'}">
+                                        <span t-field="stage.name"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <t t-set="card_body">
+                    <div class="row">
+                        <div class="col-lg-5 mb-4 mb-lg-0">
+                            <h5 class="card-title mb-0">Team - Information</h5>
+                            <div class="border-bottom d-flex justify-content-between py-2 mb-3 align-items-center">
+                                <button type="button" data-toggle="modal" data-target=".modal_edit_opp" class="btn btn-link btn-sm"><i class="fa fa-pencil mr-1"/>Edit Team</button>
+                            </div>
+
+                             <div class="row mb-2">
+                                <strong class="col-12 col-sm-4">Team Name TEST</strong>
+                                <div class="col">
+                                    <span t-if="team.name" t-field="team.name"/>
+                                </div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <strong class="col-12 col-sm-4">User 1</strong>
+                                <div class="col">
+<!--                                    <span t-if="team.user_ids" t-field="team.user_ids"/>-->
+
+                                    <span t-if="team.user_1_id" t-field="team.user_1_id"/>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <strong class="col-12 col-sm-4">User 2</strong>
+                                <div class="col">
+                                    <span t-if="team.user_2_id" t-field="team.user_2_id"/>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <strong class="col-12 col-sm-4">User 3</strong>
+                                <div class="col">
+                                    <span t-if="team.user_3_id" t-field="team.user_3_id"/>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <strong class="col-12 col-sm-4">User 4</strong>
+                                <div class="col">
+                                    <span t-if="team.user_4_id" t-field="team.user_4_id"/>
+                                </div>
+                            </div>
+
+
+<!--                            <div class="row mb-2">-->
+<!--                                <strong class="col-12 col-sm-4">Member 1</strong>-->
+<!--                                <div class="col">-->
+<!--                                    <span t-if="team.member_1_id" t-field="team.member_1_id"/>-->
+<!--                                </div>-->
+<!--                            </div>-->
+
+                        </div>
+
+<!--                        <div class="col-lg-6 offset-lg-1 col-xl-5 offset-xl-2">-->
+<!--                            <div class="d-flex justify-content-between py-2 mb-3 border-bottom align-items-center">-->
+<!--                                <h5 class="card-title mb-0">Contacts - Members</h5>-->
+<!--                                <button type="button" data-toggle="modal" data-target=".modal_edit_contact" class="btn btn-link btn-sm"><i class="fa fa-pencil mr-1"/>Edit</button>-->
+<!--                            </div>-->
+<!--                            <div class="row mb-3" t-if="team.partner_name or team.email_from or team.contact_name">-->
+<!--&lt;!&ndash;                                <div class="row mb-3" t-if="opportunity.partner_name or opportunity.email_from or opportunity.contact_name">&ndash;&gt;-->
+<!--                                <strong class="col-12 col-sm-3">Customer</strong>-->
+<!--                                <div class="col">-->
+<!--                                    <div>-->
+<!--                                        <span class="fa fa-user fa-fw" role="img" aria-label="User" title="User"/>-->
+<!--                                        <strong class="font-italic" t-if="team.partner_name" itemprop="name" t-field="team.partner_name" />-->
+<!--                                        <strong class="font-italic" t-else="" itemprop="name" t-field="team.contact_name" />-->
+
+
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <span class="fa fa-user fa-fw" role="img" aria-label="Member 1" title="Member #1"/>-->
+<!--                                        <span t-if="team.member_1_id" itemprop="member_1_id" t-field="team.member_1_id"/>-->
+<!--&lt;!&ndash;                                        <strong class="font-italic" t-else="" itemprop="name" t-field="team.member_1_id" />&ndash;&gt;-->
+<!--                                        <span t-else="" class="text-muted"> - </span>-->
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <span class="fa fa-phone fa-fw" role="img" aria-label="Phone" title="Phone"/>-->
+<!--                                        <span t-if="team.phone" itemprop="telephone" t-field="team.phone"/>-->
+<!--                                        <span t-else="" class="text-muted"> - </span>-->
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <span class="fa fa-mobile fa-fw" role="img" aria-label="Mobile" title="Mobile"/>-->
+<!--                                        <span t-if="team.mobile" itemprop="mobile" t-field="team.mobile"/>-->
+<!--                                        <span t-else="" class="text-muted"> - </span>-->
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <span class="fa fa-envelope fa-fw" role="img" aria-label="Email" title="Email"/>-->
+<!--                                        <span t-if="team.email_from" itemprop="email" t-field="team.email_from"/>-->
+<!--                                        <span t-else="" class="text-muted"> - </span>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+
+<!--                        </div>-->
+
+                        <!-- ==== MODALS ==== -->
+                        <div>
+                            <div role="dialog" class="modal fade modal_edit_opp">
+                                <div class="modal-dialog">
+                                    <form method="POST" class="js_accept_json modal-content js_website_submit_form edit_opp_form">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="team_id" class="team_id" t-att-value="team.id"/>
+                                        <header class="modal-header">
+                                            <h4 class="modal-title">Edit Modal Team</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
+                                        </header>
+                                        <main class="modal-body" id="sign-dialog">
+                                            <div class="form-group">
+                                                <div class="form-row align-items-center">
+                                                    <div class="col-auto flex-grow-1">
+                                                        <div class="input-group">
+                                                            <div class="input-group-prepend">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+
+                                                <label class="col-form-label" for="name">Team Name</label>
+                                                <input type="text" name="name" class="form-control name" t-att-value="team.name"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="post_user_1">Users</label>
+                                                <input type="text" name="post_user_1" class="form-control js_select2" placeholder="Users"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="post_user_2">User 2</label>
+                                                <input type="text" name="post_user_2" class="form-control js_select2" placeholder="Users"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="post_user_3">User 3</label>
+                                                <input type="text" name="post_user_3" class="form-control js_select2" placeholder="Users"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="post_user_4">User 4</label>
+                                                <input type="text" name="post_user_4" class="form-control js_select2" placeholder="Users"/>
+                                            </div>
+                                        </main>
+                                        <footer class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                            <button t-attf-class="btn btn-primary edit_opp_confirm">Confirm</button>
+                                        </footer>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div role="dialog" class="modal fade modal_edit_contact">
+                                <div class="modal-dialog">
+                                    <form method="POST" class="js_accept_json modal-content js_website_submit_form edit_contact_form">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="team_id" class="team_id" t-att-value="team.id"/>
+                                        <header class="modal-header">
+                                            <h4 class="modal-title">Edit Team</h4>
+<!--                                            <h4 class="modal-title">Edit Contact</h4>-->
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
+                                        </header>
+                                        <main class="modal-body" id="sign-dialog">
+                                            <t t-if="team.partner_name">
+                                                <div class="form-group">
+                                                    <label class="col-form-label" for="partner_name">Customer Name</label>
+                                                    <input type="text" name="partner_name" class="form-control partner_name" t-att-value="team.partner_name"/>
+                                                </div>
+                                            </t>
+                                            <t t-if="not team.partner_name">
+                                                <div class="form-group">
+                                                    <label class="col-form-label" for="partner_name">Team Name</label>
+<!--                                                    <label class="col-form-label" for="partner_name">Customer Name</label>-->
+<!--                                                    <input type="text" name="partner_name" class="form-control partner_name" t-att-value="team.contact_name"/>-->
+                                                    <input type="text" name="partner_name" class="form-control name" t-att-value="team.name"/>
+
+<!--                                                    <input type="text" name="partner_name" class="form-control partner_name" t-att-value="team.partner_name"/>-->
+                                                </div>
+                                            </t>
+
+                                            <div clas="form-group">
+                                                <label for="member_id_1" class="control-label">Member ID #1</label>
+                                                <select class="form-control" name="member_id_1">
+                                                     <t t-foreach="members" t-as="member">
+                                                          <option t-att-value="member.id" t-attf-value="#{member.id}" t-attf-name="#{counter}-name"><t t-esc="member.name"/></option>
+                                                     </t>
+                                                 </select>
+                                            </div>
+
+                                            <div clas="form-group">
+                                                <label for="member_id_2" class="control-label">Member ID #2</label>
+                                                <select class="form-control" name="member_2">
+                                                     <t t-foreach="members" t-as="member">
+                                                          <option t-attf-value="#{member.id}" t-attf-name="#{counter}-name"><t t-esc="member.name"/></option>
+                                                     </t>
+                                                 </select>
+                                            </div>
+
+                                            <div clas="form-group">
+                                                <label for="member_id_3" class="control-label">Member ID #3</label>
+                                                <select class="form-control" name="member_3">
+                                                     <t t-foreach="members" t-as="member">
+                                                          <option t-attf-value="#{member.id}" t-attf-name="#{counter}-name"><t t-esc="member.name"/></option>
+                                                     </t>
+                                                 </select>
+                                            </div>
+
+                                            <div clas="form-group">
+                                                <label for="member_id_4" class="control-label">Member ID #4</label>
+                                                <select class="form-control" name="member_4">
+                                                     <t t-foreach="members" t-as="member">
+                                                          <option t-attf-value="#{member.id}" t-attf-name="#{counter}-name"><t t-esc="member.name"/></option>
+                                                     </t>
+                                                 </select>
+                                            </div>
+                                        </main>
+                                        <footer class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                            <button t-attf-class="btn btn-primary edit_contact_confirm">Confirm</button>
+                                        </footer>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- === / MODALS === -->
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

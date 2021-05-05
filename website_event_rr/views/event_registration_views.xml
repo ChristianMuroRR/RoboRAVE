@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<odoo><data>
+
+    <record id="event_registration_division_view_form" model="ir.ui.view">
+        <field name="name">event.registration.form.inherit.event.division</field>
+        <field name="model">event.registration</field>
+        <field name="inherit_id" ref="event.view_event_registration_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='event_ticket_id']" position="after">
+                <field name="division_id"/>
+                <field name="players"/>
+                <field name="team_created"/>
+            </xpath>
+        </field>
+    </record>
+
+</data></odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Auth Assets">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" href="/webgl_portal/static/src/css/style.css" />
+            <script type="text/javascript" src="/webgl_portal/static/src/js/script.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"></script>
+<!--            <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.js"></script>-->
+        </xpath>
+    </template>
+
+</odoo>
